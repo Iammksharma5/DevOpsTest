@@ -1,0 +1,63 @@
+V2                                Welcome Buddies
+
+Today i am going to install Apache webserver and set Custom Port in apache server on CentOS 8. In below scenario i will use port  "8081" to access webserver url.
+
+
+Q: How to install Apache webserver and set Custom Port in apache server on CentOS 8 ?
+
+Ans:
+
+1. Install the apacher server package named as "httpd" on CentOS 8.
+
+     yum install httpd
+
+2. Verify the httpd server is up and running :
+    
+
+     "systemctl status httpd"
+
+3. Now i will customize the port accordingly in the config file.
+
+
+4. For best practice take backup of config file before modification.
+
+    "cp /etc/httpd/conf/httpd.conf httpd.confbkup"
+
+5. Check if the firewall is ON or OFF. If firewall is ON and you need to add entry for Port number which you will define in apache
+   webserver. i.e Port 8081
+    
+
+     firewall-cmd --state     ------ To check status of firewall.
+
+     firewall-cmd --list-ports         ------------------- To list all the allowed ports. 
+
+     firewall-cmd --zone=public --add-port=8081/tcp --permanent     ------------------ To add port in firewall permanently.
+
+     firewall-cmd --reload      ------------------------------------------------- To restart firewall services
+      
+     firewall-cmd --zone=public --query-port=8081/tcp       -------------------------  To check  firewall is accepting request or not on port.
+
+
+
+6. Then restart httpd service :
+
+       "systemctl restart httpd"
+
+7. Check the httpd service status again: 
+
+    "systemctl status httpd"
+
+
+8. Now try to access apache webserver using "curl" or using browser. 
+
+   " curl localhost:8081"  
+            OR
+   " http://192.168.1.152:8081"
+
+9. If above url working fine. It means you have successfully setup the custom port .
+
+
+      
+          THANKS FOR WATCHING MY VIDEOS. DO SUBSCRIBE AND LIKE MY VIDEO IF YOU FIND REALLY HELPFUL TO YOU.
+
+
