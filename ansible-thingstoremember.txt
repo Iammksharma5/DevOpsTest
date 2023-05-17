@@ -1,0 +1,146 @@
+
+
+master = 192.168.1.151
+slave-1 = 192.168.1.152
+slave-2 = 192.168.1.153
+
+
+
+Note: Every machine is reachable to each machine . using DNS or entries in local-DNS host file , "/etc/hosts"
+
+****************************************************
+Need to set on Ansible Server and Nodes:
+
+vi /etc/ssh/sshd_config :
+
+below parameter must be enable by removing # :
+
+
+PermitRootLogin yes
+PubkeyAuthentication yes
+PasswordAuthentication yes
+
+
+restart sshd service 
+
+*************************************************
+Generate from Ansible server and Copy Public key to every node :
+
+[user1@master ~]# ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):
+
+ssh-copy-id user1@192.168.1.152
+
+
+****************************************************
+
+You need enable entries from ansible.cfg file:
+/etc/ansible/ansible.cfg
+
+
+
+inventory      = /etc/ansible/hosts
+sudo_user      = root
+
+
+
+[defaults]
+
+# some basic default values...
+
+inventory      = /etc/ansible/hosts
+#library        = /usr/share/my_modules/
+#module_utils   = /usr/share/my_module_utils/
+#remote_tmp     = ~/.ansible/tmp
+#local_tmp      = ~/.ansible/tmp
+#plugin_filters_cfg = /etc/ansible/plugin_filters.yml
+#forks          = 5
+#poll_interval  = 15
+sudo_user      = root
+#ask_sudo_pass = True
+#ask_pass      = True
+#transport      = smart
+#remote_port    = 22
+#module_lang    = C
+#module_set_locale = False
+
+
+***************************************************************
+Second step is add host under below hosts file.
+
+/etc/ansible/hosts
+
+[myweb]
+
+192.168.1.152 slave-1.localhost=user1
+192.168.1.153 slave-2.localhost=user1
+192.168.1.12  Ubuntu22-MK=webmaster
+
+**********************************************************************
+
+
+
+COMMANDS TO TEST:
+
+[root@master ansible]# ansible myweb --list-hosts
+  hosts (2):
+    slave-1.localhost=192.168.1.152
+    slave-2.localhost=192.168.1.153
+[root@master ansible]#
+
+
+
+
+[root@master ansible]# ansible myweb[0] --list-hosts
+  hosts (1):
+    slave-1.localhost=192.168.1.152
+[root@master ansible]# ansible myweb[1] --list-hosts
+  hosts (1):
+    slave-2.localhost=192.168.1.153
+[root@master ansible]#
+
+ansible-inventory --list -y
+all:
+  children:
+    myweb:
+      hosts:
+        192.168.1.12:
+          Ubuntu22-MK: webmaster
+        192.168.1.152:
+          slave-1.localhost: user1
+        192.168.1.153:
+          slave-2.localhost: user1
+    ungrouped: {}
+
+
+
+
+[user1@master .ssh]$  ansible all -m command -a "hostname"
+192.168.1.12 | CHANGED | rc=0 >>
+Ubuntu22-MK
+192.168.1.152 | CHANGED | rc=0 >>
+slave-1.localhost
+192.168.1.153 | CHANGED | rc=0 >>
+slave-2.localhost
+[user1@master .ssh]$
+
+
+
+
+
+
+[user1@master .ssh]$ ansible myweb -a "uptime" -u user1
+192.168.1.12 | CHANGED | rc=0 >>
+ 01:52:53 up  6:01,  2 users,  load average: 0.20, 0.07, 0.02
+192.168.1.153 | CHANGED | rc=0 >>
+ 01:52:53 up  2:32,  3 users,  load average: 0.19, 0.18, 0.16
+192.168.1.152 | CHANGED | rc=0 >>
+ 16:22:52 up  2:15,  3 users,  load average: 0.39, 0.28, 0.16
+
+
+
+To install nmap on particular node:
+
+
+ansible myweb[0] -a "sudo yum install nmap -y"
