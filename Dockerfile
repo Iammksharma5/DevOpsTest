@@ -1,20 +1,14 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# Use the official Nginx image from the Docker Hub
+FROM nginx:latest
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /usr/share/nginx/html
 
-# Copy the current directory contents into the container
-COPY ./app /app
+# Copy the static files (index.html and style.css) into the container
+COPY ./app /usr/share/nginx/html
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Make port 80 available to the world outside this container
+# Expose port 80 to access the app
 EXPOSE 80
 
-# Define environment variable
-ENV NAME World
-
-# Run app.py when the container launches
-CMD ["python", "app.py"]
+# Start the Nginx server when the container starts
+CMD ["nginx", "-g", "daemon off;"]
